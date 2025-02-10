@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        table {
+            border-collapse: collapse;
+            margin: 20px auto;
+        }
+        td {
+            border: 1px solid black;
+            width: 50px;
+            height: 50px;
+            text-align: center;
+            cursor: pointer;
+            color: transparent;
+        }
+        .revealed {
+            color: black;
+        }
+        #score {
+            text-align: center;
+            font-size: 24px;
+        }
+        #message {
+            text-align: center;
+            color: red;
+            font-size: 20px;
+            margin: 10px;
+        }
+        .game-over {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <table id="gameTable"></table>
+    <div id="score">总分：<span>0</span></div>
+    <div id="message"></div>
+
+    <script>
+        const table = document.getElementById('gameTable');
+        const messages = ["那咋了", "包的", "太抽象了", "大数字"];
+        const characters = ['石', '千', '叶'];
+        let score = 0;
+        let gameOver = false;
+        let cells = [];
+
+        // 创建游戏表格
+        for (let i = 0; i < 8; i++) {
+            const row = document.createElement('tr');
+            cells[i] = [];
+            for (let j = 0; j < 8; j++) {
+                const cell = document.createElement('td');
+                cell.textContent = characters[Math.floor(Math.random() * 3)];
+                cell.classList.add('revealed'); // 初始隐藏文字（通过透明色）
+                cell.style.color = 'transparent';
+                cell.addEventListener('click', handleCellClick);
+                row.appendChild(cell);
+                cells[i][j] = cell;
+            }
+            table.appendChild(row);
+        }
+
+        function handleCellClick(e) {
+            if (gameOver) return;
+            const cell = e.target;
+            
+            if (cell.style.color === 'transparent') {
+                // 显示文字
+                cell.style.color = 'black';
+                
+                // 更新分数
+                score = score === 0 ? 1 : score * 2;
+                document.querySelector('#score span').textContent = score;
+                
+                // 显示随机消息
+                document.getElementById('message').textContent = messages[Math.floor(Math.random() * messages.length)];
+                
+                // 检查游戏结束条件
+                if (checkWinCondition()) {
+                    gameOver = true;
+                    document.getElementById('message').textContent = '游戏结束';
+                    table.style.display = 'none';
+                }
+            }
+        }
+
+        function checkWinCondition() {
+            const directions = [
+                [0, 1],  // 右
+                [1, 0],  // 下
+                [1, 1],  // 右下
+                [1, -1], // 左下
+                [0, -1], // 左
+                [-1, 0], // 上
+                [-1, 1], // 右上
+                [-1, -1] // 左上
+            ];
+
+            for (let i = 0; i < 8; i++) {
+                for (let j = 0; j < 8; j++) {
+                    for (const [dx, dy] of directions) {
+                        if (checkSequence(i, j, dx, dy)) {
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
+        }
+
+        function checkSequence(x, y, dx, dy) {
+            try {
+                const cellsToCheck = [
+                    cells[x][y],
+                    cells[x + dx][y + dy],
+                    cells[x + dx*2][y + dy*2]
+                ];
+                
+                if (
+                    cellsToCheck[0].textContent === '石' &&
+                    cellsToCheck[1].textContent === '千' &&
+                    cellsToCheck[2].textContent === '叶' &&
+                    cellsToCheck.every(cell => cell.style.color !== 'transparent')
+                ) {
+                    cellsToCheck.forEach(cell => cell.style.color = 'red');
+                    return true;
+                }
+            } catch {
+                return false;
+            }
+            return false;
+        }
+    </script>
+</body>
+</html>
